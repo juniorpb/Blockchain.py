@@ -22,6 +22,12 @@ class Blockchain:
         # add first block 
         self.__chain.append(genesisBlock)
 
+        # setting adjustument of difficulty
+        self.DIFFICULTY_ADJUSTMENT = 10
+
+        # value in seconds
+        self.BLOCK_INTERVAL = 120
+
     # get last block in Blockchain
     def getLatesBlock(self):
         return self.__chain[-1] # -1 return last element of list
@@ -72,7 +78,33 @@ class Blockchain:
                 return block
             
             nonce += 1
-         
+    
+    # return value of difficulty
+    def getDifficulty(self):
+        latesBlock = self.getLatesBlock()
+        if latesBlock.index % self.DIFFICULTY_ADJUSTMENT == 0 and latesBlock.index != 0:
+            return self.getAdjustedDifficulty()
+        
+        return latesBlock.difficulty
+
+    def getAdjustedDifficulty(self):
+        latesBlock = self.getLatesBlock()
+
+        # get last block adjustement difficulty
+        prevAdjsutmentBlock = self.blockchain[len(self.blockchain) - self.DIFFICULTY_ADJUSTMENT]
+        timeExpected = self.BLOCK_INTERVAL * self.DIFFICULTY_ADJUSTMENT
+        timeTaken = latesBlock.timestamp - prevAdjsutmentBlock.timestamp
+
+        if timeTaken < timeExpected * 2:
+            return prevAdjsutmentBlock.difficulty + 1
+        
+        elif timeTaken > timeExpected * 1:
+            return prevAdjsutmentBlock.difficulty - 1
+        
+        else: 
+            return prevAdjsutmentBlock.difficulty
+        
+
 
 def calculateHash(index, previousHash, timestamp, data, difficulty, nonce):
     return hashlib.sha256((str(index) + previousHash + str(timestamp) + data + str(difficulty) + str(nonce)).encode('utf-8')).hexdigest()
